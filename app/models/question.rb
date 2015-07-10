@@ -31,21 +31,19 @@ class Question < ActiveRecord::Base
   )
 
   def results
+    # get number of responses for each possible answer choice
+    # store the possible answer choice along with count of responses in hash
+    # i.e. { "A. Choice 1" => 2, "B. Choice 2" => 0, "C. Choice 3" => 5}
+
     hash = {}
-    #get number of responses for each possible answer choice
-    # self.answer_choices.includes(:responses)
+
+    # N + 1 database queries version:
     # self.answer_choices.each do |option|
     #   hash[option.text] = option.responses.count
     # end
     # hash
 
-    self.answer_choices
-      .select('answer_choices.*, COUNT(responses.answer_id) as response_count')
-      .joins(<<-SQL).group('answer_choices.id')
-      "LEFT OUTER JOIN responses ON responses.answer_id = answer_choices.id"
-      SQL
-
-
+    # SQL version:
     # SELECT
     #   answer_choices.*, COUNT(responses.answer_id)
     # FROM
@@ -56,6 +54,13 @@ class Question < ActiveRecord::Base
     #   answer_choices.question_id = ? (self.id)
     # GROUP BY
     #   answer_choices.id
+
+    # Needs work:
+    self.answer_choices
+      .select('answer_choices.*, COUNT(responses.answer_id) as response_count')
+      .joins(<<-SQL).group('answer_choices.id')
+      "LEFT OUTER JOIN responses ON responses.answer_id = answer_choices.id"
+      SQL
   end
 
 end
